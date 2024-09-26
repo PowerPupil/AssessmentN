@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamified Assessment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            width: 60%;
+            margin: auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .choices {
+            list-style-type: none;
+            padding: 0;
+        }
+        .choices li {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .choices li:hover {
+            background-color: #ccc;
+        }
+        .timer {
+            font-size: 24px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 20px;
+        }
+        .balloon {
+            display: inline-block;
+            padding: 20px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.3s;
+        }
+        .balloon:hover {
+            transform: scale(1.1);
+        }
+        .drag-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px;
+        }
+        .drag-item {
+            width: 100px;
+            height: 100px;
+            background-color: #ddd;
+            margin: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+        }
+        .drop-target {
+            width: 150px;
+            height: 150px;
+            background-color: #ccc;
+            margin: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #666;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Gamified Assessment</h1>
+
+        <!-- Question Section -->
+        <div id="question-container">
+            <h2 id="question">Question 1: Loading...</h2>
+            <ul class="choices" id="choices"></ul>
+        </div>
+
+        <!-- Timer -->
+        <div class="timer" id="timer">Time: 30</div>
+
+        <!-- Game Interaction (Balloon Popping Example) -->
+        <div id="balloon-game" style="display: none;">
+            <h2>Pop the balloon with the correct answer!</h2>
+            <div class="balloon" onclick="checkBalloon('A')">A</div>
+            <div class="balloon" onclick="checkBalloon('B')">B</div>
+            <div class="balloon" onclick="checkBalloon('C')">C</div>
+        </div>
+
+        <!-- Result -->
+        <div id="result" class="result"></div>
+
+    </div>
+
+    <script>
+        // Global variables
+        let questions = [
+            {
+                question: "Which task do you prioritize?",
+                choices: ["A) Respond to the team member", "B) Focus on the client’s request", "C) Start working on the presentation for your manager"],
+                correct: "A",
+                type: "balloon"  // Gamified adaptation type
+            },
+            {
+                question: "During an important presentation, your company’s IT system crashes. What is your next step?",
+                choices: ["A) Apologize and reschedule", "B) Try to fix the problem", "C) Continue discussion without slides"],
+                correct: "C",
+                type: "balloon"
+            },
+            {
+                question: "You receive a minor issue call and an urgent client email. What do you do first?",
+                choices: ["A) Resolve minor issue", "B) Work on client update", "C) Delegate minor issue, focus on update"],
+                correct: "C",
+                type: "balloon"
+            },
+            {
+                question: "You have two conflicting deadlines. How do you handle this?",
+                choices: ["A) Attend the meeting", "B) Postpone the meeting", "C) Delegate the report"],
+                correct: "A",
+                type: "balloon"
+            },
+            {
+                question: "A client hasn’t received a deliverable. What do you do next?",
+                choices: ["A) Apologize and promise delivery", "B) Request extension", "C) Delegate task and begin work"],
+                correct: "B",
+                type: "balloon"
+            },
+            // Add 20 more questions in this format...
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timer;
+        let timeLeft = 30;
+
+        // Load the first question
+        loadQuestion();
+
+        // Function to load the question
+        function loadQuestion() {
+            clearInterval(timer);  // Clear any existing timers
+            timeLeft = 30;  // Reset time
+
+            const currentQuestion = questions[currentQuestionIndex];
+            document.getElementById('question').textContent = `Question ${currentQuestionIndex + 1}: ${currentQuestion.question}`;
+            const choicesList = document.getElementById('choices');
+            choicesList.innerHTML = '';  // Clear previous choices
+
+            currentQuestion.choices.forEach(choice => {
+                const li = document.createElement('li');
+                li.textContent = choice;
+                li.onclick = () => checkAnswer(choice[0]);
+                choicesList.appendChild(li);
+            });
+
+            // Show the game type (here we only handle balloon popping for now)
+            if (currentQuestion.type === "balloon") {
+                document.getElementById('balloon-game').style.display = 'block';
+            } else {
+                document.getElementById('balloon-game').style.display = 'none';
+            }
+
+            startTimer();
+        }
+
+        // Function to check the answer
+        function checkAnswer(selected) {
+            const correctAnswer = questions[currentQuestionIndex].correct;
+            if (selected === correctAnswer) {
+                score += 10;
+                document.getElementById('result').textContent = "Correct!";
+            } else {
+                document.getElementById('result').textContent = "Wrong answer!";
+            }
+            nextQuestion();
+        }
+
+        // Function to check balloon popping game
+        function checkBalloon(selected) {
+            checkAnswer(selected);
+        }
+
+        // Timer function
+        function startTimer() {
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = `Time: ${timeLeft}`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    document.getElementById('result').textContent = "Time's up!";
+                    nextQuestion();
+                }
+            }, 1000);
+        }
+
+        // Move to the next question
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                setTimeout(() => {
+                    document.getElementById('result').textContent = "";
+                    loadQuestion();
+                }, 1000);
+            } else {
+                document.getElementById('result').textContent = `Quiz Finished! Your score is: ${score}`;
+            }
+        }
+
+    </script>
+
+</body>
+</html>
